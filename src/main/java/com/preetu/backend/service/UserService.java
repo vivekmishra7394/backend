@@ -29,7 +29,7 @@ public class UserService {
 	}
 
 	public Users updateUserById(Long id, Users updatedUser) {
-		Users existingUser = getUserById(id);
+		Users existingUser = userRepository.findById(id).orElseThrow(() -> new RuntimeException("Invalid ID."));
 
 		existingUser.setName(updatedUser.getName());
 		existingUser.setEmail(updatedUser.getEmail());
