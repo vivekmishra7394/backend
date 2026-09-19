@@ -3,23 +3,19 @@ package com.preetu.backend.controller;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import com.preetu.backend.dto.UserRequest;
+import com.preetu.backend.dto.UserResponse;
 import com.preetu.backend.entity.Users;
 import com.preetu.backend.service.UserService;
 
+import jakarta.validation.Valid;
 
 @Controller
 @RestController
 @RequestMapping("/api/users")
+@CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
 
 	private final UserService userService;
@@ -29,37 +25,35 @@ public class UserController {
 	}
 
 	@PostMapping("/create-user")
-	public Users createUser(@RequestBody Users users) {
-		System.out.println(users.getName());
+	public UserResponse createUser(@Valid @RequestBody UserRequest request) {
+		System.out.println(request.getName());
 
-		System.out.println(users.getEmail());
+		System.out.println(request.getEmail());
 
-		System.out.println(users.getPhone());
-		return userService.createUser(users);
+		System.out.println(request.getPhone());
+		return userService.createUser(request);
 	}
 
 	@GetMapping
-	public List<Users> getAllUsers() {
+	public List<UserResponse> getAllUsers() {
 		return userService.getAllUsers();
 
 	}
-	
+
 	@GetMapping("/get-user-by-id/{id}")
-	public Users getUserById(@PathVariable Long id) {
+	public UserResponse getUserById(@Valid @PathVariable Long id) {
 		return userService.getUserById(id);
 	}
 
 	@PutMapping("/update-user/{id}")
-	public Users updateUserById(@PathVariable Long id, @RequestBody Users users) {
-		return userService.updateUserById(id, users);
+	public UserResponse updateUserById(@Valid @PathVariable Long id, @RequestBody UserRequest updatedUser) {
+		return userService.updateUserById(id, updatedUser);
 	}
 
 	@DeleteMapping("/delete-user/{id}")
-	public String deleteUserById(@PathVariable Long id) {
+	public String deleteUserById(@Valid @PathVariable Long id) {
 		userService.deleteUserById(id);
 		return "User deleted successfully.";
 	}
-	
-	
 
 }

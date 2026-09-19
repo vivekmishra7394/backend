@@ -2,8 +2,8 @@ package com.preetu.backend.entity;
 
 import jakarta.persistence.*;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 
 @Entity
 public class Users {
@@ -11,10 +11,12 @@ public class Users {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@NotBlank
+	@NotBlank(message = "Name is required")
 	private String name;
+	@NotBlank
+	@Email
 	private String email;
-	@NotEmpty
+	@NotBlank
 	private String phone;
 
 	public Long getId() {

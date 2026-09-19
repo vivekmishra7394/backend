@@ -5,7 +5,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.preetu.backend.dto.ProductRequest;
+import com.preetu.backend.dto.ProductResponse;
+import com.preetu.backend.dto.UserResponse;
 import com.preetu.backend.entity.Product;
+import com.preetu.backend.entity.Users;
 import com.preetu.backend.repository.ProductRepository;
 
 @Service
@@ -17,23 +21,39 @@ public class ProductService {
 		this.productRepository = productRepository;
 	}
 
-	public Product createProduct(Product product) {
-		return productRepository.save(product);
+	public ProductResponse createProduct(ProductRequest productRequest) {
+		Product product = new Product();
+
+		product.setName(productRequest.getName());
+		product.setCategory(productRequest.getCategory());
+		product.setPrice(productRequest.getPrice());
+		product.setDescription(productRequest.getDescription());
+		product.setStockQuantity(productRequest.getStockQuantity());
+
+		Product savedProduct = productRepository.save(product);
+
+		return toResponse(savedProduct);
+
 	}
 
-	public List<Product> getAllProducts() {
-		return productRepository.findAll();
+	public List<ProductResponse> getAllProducts() {
+		return productRepository.findAll().stream().map(this::toResponse).toList();
 	}
 
-	public Product getProductById(Long id) {
-		return productRepository.findById(id).orElseThrow(() -> new RuntimeException("Id not found."));
+	public ProductResponse getProductById(Long id) {
+		Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Id not found."));
+
+		return toResponse(product);
 	}
 
-	public Product getProductByName(String name) {
-		return productRepository.findByName(name).orElseThrow(()-> new RuntimeException("Product not found."));
+	public ProductResponse getProductByName(String name) {
+		Product product = productRepository.findByName(name)
+				.orElseThrow(() -> new RuntimeException("Product not found."));
+		return toResponse(product);
+
 	}
 
-	public Product updateProductById(Long id, Product existingProduct) {
+	public ProductResponse updateProductById(Long id, ProductRequest existingProduct) {
 		Product updatedproduct = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Id not found"));
 		updatedproduct.setCategory(existingProduct.getCategory());
 		updatedproduct.setDescription(existingProduct.getDescription());
@@ -41,7 +61,9 @@ public class ProductService {
 		updatedproduct.setPrice(existingProduct.getPrice());
 		updatedproduct.setStockQuantity(existingProduct.getStockQuantity());
 
-		return productRepository.save(updatedproduct);
+		Product existingProducts = productRepository.save(updatedproduct);
+
+		return toResponse(existingProducts);
 
 	}
 
@@ -52,6 +74,11 @@ public class ProductService {
 	@Transactional
 	public void deleteByName(String name) {
 		productRepository.deleteByName(name);
+	}
+
+	private ProductResponse toResponse(Product product) {
+		return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(),
+				product.getStockQuantity(), product.getCategory());
 	}
 
 }
