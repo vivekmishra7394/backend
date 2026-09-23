@@ -2,11 +2,13 @@ package com.preetu.backend.entity;
 
 import java.math.BigDecimal;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
 @Entity
@@ -15,14 +17,15 @@ public class Product {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@NotBlank(message = "Product name is required")
+	@Column(unique = true, nullable = false)
 	private String name;
 	@NotBlank(message = "Description is required")
 	private String description;
-	
-	@NotBlank(message = "Price is required")
-	@PositiveOrZero(message = "Stock quantity cannot be negative.")
+
+	@NotNull(message = "Price is required")
+	@PositiveOrZero(message = "Price cannot be negative.")
 	private BigDecimal price;
-	@NotBlank(message = "Stock quantity is required.")
+	@NotNull(message = "Stock quantity is required.")
 	@PositiveOrZero(message = "Stock quantity cannot be negative.")
 	private Integer stockQuantity;
 	@NotBlank(message = "Category is required.")

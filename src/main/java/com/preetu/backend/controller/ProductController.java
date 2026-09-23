@@ -2,71 +2,81 @@ package com.preetu.backend.controller;
 
 import java.util.List;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.CrossOrigin;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+import com.preetu.backend.dto.ApiResponse;
 import com.preetu.backend.dto.ProductRequest;
 import com.preetu.backend.dto.ProductResponse;
-import com.preetu.backend.entity.Product;
 import com.preetu.backend.service.ProductService;
 
 import jakarta.validation.Valid;
 
-@Controller
 @RestController
 @RequestMapping("/products")
 @CrossOrigin(origins = "http://localhost:5173")
 public class ProductController {
 
-	private ProductService productService;
+	private final ProductService productService;
 
 	public ProductController(ProductService productService) {
 		this.productService = productService;
 	}
 
 	@PostMapping("/create-product")
-	public ProductResponse createProduct(@Valid @RequestBody ProductRequest productRequest) {
-		return productService.createProduct(productRequest);
+	public ApiResponse<ProductResponse> createProduct(@Valid @RequestBody ProductRequest productRequest) {
+
+		ProductResponse product = productService.createProduct(productRequest);
+
+		return new ApiResponse<>(true, "Product created successfully", product);
 	}
 
 	@GetMapping
-	public List<ProductResponse> getAllProducts() {
-		return productService.getAllProducts();
+	public ApiResponse<Page<ProductResponse>> getAllProducts(Pageable pageable) {
+
+		Page<ProductResponse> products = productService.getAllProducts(pageable);
+
+		return new ApiResponse<>(true, "Products fetched successfully", products);
 	}
 
-	@GetMapping("get-product-by-id/{id}")
-	public ProductResponse getProductById(@PathVariable Long id) {
-		return productService.getProductById(id);
-	}
-	@GetMapping("get-product-by-name/{name}")
-	public ProductResponse getProductByName(@Valid @PathVariable String name) {
-		return productService.getProductByName(name);
-	}
-	
-	@PutMapping("update-product-by-id/{id}")
-	public ProductResponse updateProductById(@Valid @PathVariable Long id, @RequestBody ProductRequest productRequest) {
-		return productService.updateProductById(id, productRequest);
+	@GetMapping("/get-product-by-id/{id}")
+	public ApiResponse<ProductResponse> getProductById(@PathVariable Long id) {
+
+		ProductResponse product = productService.getProductById(id);
+
+		return new ApiResponse<>(true, "Product fetched successfully", product);
 	}
 
-	@DeleteMapping("delete-product-by-id/{id}")
-	public String deleteById(@Valid @PathVariable Long id) {
-		 productService.deleteById(id);
-		 return "Deleted successfully.";
+	@GetMapping("/get-product-by-name/{name}")
+	public ApiResponse<ProductResponse> getProductByName(@PathVariable String name) {
+
+		ProductResponse product = productService.getProductByName(name);
+
+		return new ApiResponse<>(true, "Product fetched successfully", product);
 	}
 
-	@DeleteMapping("delete-product-by-name/{name}")
-	public String deleteByName(@Valid @PathVariable String name) {
-		System.out.println(name);
+	@PutMapping("/update-product-by-id/{id}")
+	public ApiResponse<ProductResponse> updateProductById(@PathVariable Long id,
+			@Valid @RequestBody ProductRequest productRequest) {
+
+		ProductResponse product = productService.updateProductById(id, productRequest);
+
+		return new ApiResponse<>(true, "Product updated successfully", product);
+	}
+
+	@DeleteMapping("/delete-product-by-id/{id}")
+	public ApiResponse<String> deleteById(@PathVariable Long id) {
+
+		productService.deleteById(id);
+
+		return new ApiResponse<>(true, "Product deleted successfully", "Deleted successfully.");
+	}
+
+	@DeleteMapping("/delete-product-by-name/{name}")
+	public ApiResponse<String> deleteByName(@PathVariable String name) {
+
 		productService.deleteByName(name);
-		return "Deleted successfully.";
-	}
 
+		return new ApiResponse<>(true, "Product deleted successfully", "Deleted successfully.");
+	}
 }

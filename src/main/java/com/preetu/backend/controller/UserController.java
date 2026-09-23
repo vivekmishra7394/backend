@@ -2,9 +2,12 @@ package com.preetu.backend.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import com.preetu.backend.dto.ApiResponse;
 import com.preetu.backend.dto.UserRequest;
 import com.preetu.backend.dto.UserResponse;
 import com.preetu.backend.entity.Users;
@@ -25,35 +28,42 @@ public class UserController {
 	}
 
 	@PostMapping("/create-user")
-	public UserResponse createUser(@Valid @RequestBody UserRequest request) {
+	public ApiResponse<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
 		System.out.println(request.getName());
 
 		System.out.println(request.getEmail());
 
 		System.out.println(request.getPhone());
-		return userService.createUser(request);
+		UserResponse users = userService.createUser(request);
+
+		return new ApiResponse<>(true, "User created successfully", users);
 	}
 
 	@GetMapping
-	public List<UserResponse> getAllUsers() {
-		return userService.getAllUsers();
+	public ApiResponse<Page<UserResponse>> getAllUsers(Pageable pageable) {
+		Page<UserResponse> users = userService.getAllUsers(pageable);
+		return new ApiResponse<>(true, "Fetched All users", users);
 
 	}
 
 	@GetMapping("/get-user-by-id/{id}")
-	public UserResponse getUserById(@Valid @PathVariable Long id) {
-		return userService.getUserById(id);
+	public ApiResponse<UserResponse> getUserById(@Valid @PathVariable Long id) {
+		UserResponse users = userService.getUserById(id);
+
+		return new ApiResponse<>(true, "User fetched successfully", users);
 	}
 
 	@PutMapping("/update-user/{id}")
-	public UserResponse updateUserById(@Valid @PathVariable Long id, @RequestBody UserRequest updatedUser) {
-		return userService.updateUserById(id, updatedUser);
+	public ApiResponse<UserResponse> updateUserById(@Valid @PathVariable Long id,
+			@RequestBody UserRequest updatedUser) {
+		UserResponse users = userService.updateUserById(id, updatedUser);
+		return new ApiResponse<>(true, "User updated successfully", users);
 	}
 
 	@DeleteMapping("/delete-user/{id}")
-	public String deleteUserById(@Valid @PathVariable Long id) {
+	public ApiResponse<String> deleteUserById(@Valid @PathVariable Long id) {
 		userService.deleteUserById(id);
-		return "User deleted successfully.";
+		return new ApiResponse<>(true, "User deleted successfully.", null);
 	}
 
 }

@@ -1,27 +1,34 @@
 package com.preetu.backend.service;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.preetu.backend.dto.ProductRequest;
 import com.preetu.backend.dto.ProductResponse;
-import com.preetu.backend.dto.UserResponse;
 import com.preetu.backend.entity.Product;
-import com.preetu.backend.entity.Users;
+import com.preetu.backend.exception.ConflictException;
+import com.preetu.backend.exception.ResourceNotFoundException;
 import com.preetu.backend.repository.ProductRepository;
 
 @Service
 public class ProductService {
 
-	private ProductRepository productRepository;
+	private final ProductRepository productRepository;
 
 	public ProductService(ProductRepository productRepository) {
 		this.productRepository = productRepository;
 	}
 
+	// CREATE PRODUCT
 	public ProductResponse createProduct(ProductRequest productRequest) {
+
+		if (productRepository.existsByName(productRequest.getName())) {
+			throw new ConflictException(
+					"Product name already exists. Please use a unique product name." + productRequest.getName());
+		}
+
 		Product product = new Product();
 
 		product.setName(productRequest.getName());
@@ -33,52 +40,74 @@ public class ProductService {
 		Product savedProduct = productRepository.save(product);
 
 		return toResponse(savedProduct);
-
 	}
 
-	public List<ProductResponse> getAllProducts() {
-		return productRepository.findAll().stream().map(this::toResponse).toList();
+	// GET ALL PRODUCTS
+	public Page<ProductResponse> getAllProducts(Pageable pageable) {
+
+		return productRepository.findAll(pageable).map(this::toResponse);
 	}
 
+	// GET PRODUCT BY ID
 	public ProductResponse getProductById(Long id) {
-		Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Id not found."));
+
+		Product product = productRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
 
 		return toResponse(product);
 	}
 
+	// GET PRODUCT BY NAME
 	public ProductResponse getProductByName(String name) {
+
 		Product product = productRepository.findByName(name)
-				.orElseThrow(() -> new RuntimeException("Product not found."));
+				.orElseThrow(() -> new ResourceNotFoundException("Product not found with name: " + name));
+
 		return toResponse(product);
-
 	}
 
+	// UPDATE PRODUCT
 	public ProductResponse updateProductById(Long id, ProductRequest existingProduct) {
-		Product updatedproduct = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Id not found"));
-		updatedproduct.setCategory(existingProduct.getCategory());
-		updatedproduct.setDescription(existingProduct.getDescription());
-		updatedproduct.setName(existingProduct.getName());
-		updatedproduct.setPrice(existingProduct.getPrice());
-		updatedproduct.setStockQuantity(existingProduct.getStockQuantity());
 
-		Product existingProducts = productRepository.save(updatedproduct);
+		Product updatedProduct = productRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
 
-		return toResponse(existingProducts);
+		updatedProduct.setCategory(existingProduct.getCategory());
+		updatedProduct.setDescription(existingProduct.getDescription());
+		updatedProduct.setName(existingProduct.getName());
+		updatedProduct.setPrice(existingProduct.getPrice());
+		updatedProduct.setStockQuantity(existingProduct.getStockQuantity());
 
+		Product savedProduct = productRepository.save(updatedProduct);
+
+		return toResponse(savedProduct);
 	}
 
+	// DELETE PRODUCT BY ID
 	public void deleteById(Long id) {
+
+		if (!productRepository.existsById(id)) {
+			throw new ResourceNotFoundException("Product not found with id: " + id);
+		}
+
 		productRepository.deleteById(id);
 	}
 
+	// DELETE PRODUCT BY NAME
 	@Transactional
 	public void deleteByName(String name) {
+
+		if (!productRepository.existsByName(name)) {
+			throw new ResourceNotFoundException("Product not found with name: " + name);
+		}
+
 		productRepository.deleteByName(name);
 	}
 
+	// ENTITY → RESPONSE DTO
 	private ProductResponse toResponse(Product product) {
+
 		return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(),
 				product.getStockQuantity(), product.getCategory());
 	}
-
 }
