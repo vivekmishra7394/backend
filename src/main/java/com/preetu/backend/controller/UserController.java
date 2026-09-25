@@ -1,18 +1,16 @@
 package com.preetu.backend.controller;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
 import com.preetu.backend.dto.ApiResponse;
+import com.preetu.backend.dto.LoginRequest;
+import com.preetu.backend.dto.LoginResponse;
 import com.preetu.backend.dto.UserRequest;
 import com.preetu.backend.dto.UserResponse;
-import com.preetu.backend.entity.Users;
 import com.preetu.backend.service.UserService;
-
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @Controller
@@ -28,7 +26,7 @@ public class UserController {
 	}
 
 	@PostMapping("/create-user")
-	public ApiResponse<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
+	public ApiResponse<UserResponse> createUser(@Valid @RequestBody UserRequest request, HttpServletResponse response) {
 		System.out.println(request.getName());
 
 		System.out.println(request.getEmail());
@@ -64,6 +62,13 @@ public class UserController {
 	public ApiResponse<String> deleteUserById(@Valid @PathVariable Long id) {
 		userService.deleteUserById(id);
 		return new ApiResponse<>(true, "User deleted successfully.", null);
+	}
+
+	@PostMapping("/user-login")
+	public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request) {
+		LoginResponse loginResponse = userService.login(request);
+
+		return new ApiResponse<>(true, "Login successful", loginResponse);
 	}
 
 }
