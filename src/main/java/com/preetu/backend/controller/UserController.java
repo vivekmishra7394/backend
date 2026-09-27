@@ -10,6 +10,8 @@ import com.preetu.backend.dto.LoginResponse;
 import com.preetu.backend.dto.UserRequest;
 import com.preetu.backend.dto.UserResponse;
 import com.preetu.backend.service.UserService;
+
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
@@ -65,10 +67,19 @@ public class UserController {
 	}
 
 	@PostMapping("/user-login")
-	public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request) {
+	public ApiResponse<UserResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
 		LoginResponse loginResponse = userService.login(request);
-
-		return new ApiResponse<>(true, "Login successful", loginResponse);
+		
+		Cookie cookie = new Cookie("jwt",loginResponse.getToken());
+		
+		cookie.setHttpOnly(true);
+		cookie.setSecure(false);
+		cookie.setPath("/");
+		cookie.setMaxAge(30*60);
+		response.addCookie(cookie);
+		
+		
+		return new ApiResponse<>(true, "Login successful", loginResponse.getUser());
 	}
 
 }
