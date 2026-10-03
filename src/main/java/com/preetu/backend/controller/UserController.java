@@ -2,6 +2,7 @@ package com.preetu.backend.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import com.preetu.backend.dto.ApiResponse;
@@ -66,6 +67,23 @@ public class UserController {
 		return new ApiResponse<>(true, "User deleted successfully.", null);
 	}
 
+	@GetMapping("/me")
+	public ApiResponse<String> getCurrentUser(Authentication authentication) {
+
+	    String email = authentication.getName();
+
+	    return new ApiResponse<>(
+	            true,
+	            "Current user fetched successfully",
+	            email
+	    );
+	}
+	
+	@PostMapping("/admin-login")
+	public String adminTest() {
+		return "Welcome admin";
+	}
+	
 	@PostMapping("/user-login")
 	public ApiResponse<UserResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
 		LoginResponse loginResponse = userService.login(request);
@@ -80,6 +98,19 @@ public class UserController {
 		
 		
 		return new ApiResponse<>(true, "Login successful", loginResponse.getUser());
+	}
+	
+	@PostMapping("user-logout")
+	public ApiResponse<String> logout(HttpServletResponse response){
+		Cookie cookie = new Cookie("jwt", null);
+		cookie.setHttpOnly(true);
+		cookie.setSecure(false);
+		cookie.setPath("/");
+		cookie.setMaxAge(0);
+		response.addCookie(cookie);
+		
+		return new ApiResponse<String>(true, "Logiut successful", null);
+		
 	}
 
 }

@@ -17,13 +17,14 @@ public class JwtService {
     private final SecretKey secretKey;
 
     public JwtService(@Value("${jwt.secret}") String secret) {
+    	 System.out.println("JWT SECRET = [" + secret + "]");
         this.secretKey = Keys.hmacShaKeyFor(
                 Decoders.BASE64.decode(secret)
         );
     }
 
     // Generate JWT
-    public String generateToken(Long id, String email) {
+    public String generateToken(String role, String email, String customerId) {
 
         Date now = new Date();
 
@@ -33,7 +34,8 @@ public class JwtService {
 
         return Jwts.builder()
                 .subject(email)
-                .claim("id", id)
+                .claim("role", role)
+                .claim("customerId", customerId)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(secretKey)
@@ -49,6 +51,24 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload()
                 .getSubject();
+    }
+    
+    public String extractRole(String token) {
+    	return Jwts.parser()
+    			.verifyWith(secretKey)
+    			.build()
+    			.parseSignedClaims(token)
+    			.getPayload()
+    			.get("role",String.class);
+    }
+    
+    public String extractCustomerId(String token) {
+    	return Jwts.parser()
+    			.verifyWith(secretKey)
+    			.build()
+    			.parseSignedClaims(token)
+    			.getPayload()
+    			.get("customerId",String.class);
     }
 
     // Validate JWT

@@ -10,7 +10,7 @@ import com.preetu.backend.service.ProductService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/api/products")
 @CrossOrigin(origins = "http://localhost:5173")
 public class ProductController {
 

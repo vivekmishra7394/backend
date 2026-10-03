@@ -11,12 +11,25 @@ public class Users {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	@Column(name = "customer_id", updatable = false)
+	private String customerId;
+	public String getCustomerId() {
+		return customerId;
+	}
+
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
+	}
+
 	@NotBlank(message = "Name is required")
 	private String name;
 	@NotBlank
 	@Email
 	@Column(unique = true, nullable = false)
 	private String email;
+
+	@Column
+	private String role;
 	@NotBlank
 	private String phone;
 	private String password;
@@ -51,6 +64,14 @@ public class Users {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
 	}
 
 	public String getPhone() {

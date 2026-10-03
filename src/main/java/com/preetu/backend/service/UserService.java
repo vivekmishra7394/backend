@@ -1,5 +1,7 @@
 package com.preetu.backend.service;
 
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,11 +37,21 @@ public class UserService {
 		}
 
 		Users users = new Users();
+		
 
 		users.setName(request.getName());
 		users.setEmail(request.getEmail());
 		users.setPhone(request.getPhone());
 		users.setPassword(passwordEncoder.encode(request.getPassword()));
+		users.setRole("USER");
+
+	    String customerId = "CUS-" + UUID.randomUUID()
+	            .toString()
+	            .replace("-", "")
+	            .substring(0, 12)
+	            .toUpperCase();
+
+	    users.setCustomerId(customerId);
 
 		Users savedUsers = userRepository.save(users);
 
@@ -87,7 +99,7 @@ public class UserService {
 
 	// ENTITY → RESPONSE DTO
 	public UserResponse toResponse(Users user) {
-		return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getPhone());
+		return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getPhone(), user.getRole());
 	}
 
 	public String generateToken(LoginRequest request) {
@@ -98,7 +110,7 @@ public class UserService {
 			throw new RuntimeException("Invalid Email or password");
 		}
 
-		return jwtService.generateToken(users.getId(), users.getEmail());
+		return jwtService.generateToken(users.getRole(), users.getEmail(),users.getCustomerId());
 	}
 
 	public LoginResponse login(LoginRequest request) {
@@ -108,7 +120,7 @@ public class UserService {
 		if (!passwordEncoder.matches(request.getPassword(), users.getPassword())) {
 			throw new RuntimeException("Invalid Email or password");
 		}
-		String token = jwtService.generateToken(users.getId(), users.getEmail());
+		String token = jwtService.generateToken(users.getRole(), users.getEmail(),users.getCustomerId());
 
 		return new LoginResponse(toResponse(users), token);
 	}
