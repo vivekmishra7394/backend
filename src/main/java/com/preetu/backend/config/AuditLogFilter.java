@@ -90,7 +90,7 @@ public class AuditLogFilter extends OncePerRequestFilter {
 
         // Microsoft Edge
         if (userAgent.contains("Edg/")) {
-            return "Edge";
+            return "Microsoft Edge";
         }
 
         // Opera
@@ -105,7 +105,7 @@ public class AuditLogFilter extends OncePerRequestFilter {
 
         // Chrome
         if (userAgent.contains("Chrome/")) {
-            return "Chrome";
+            return "Google Chrome";
         }
 
         // Firefox

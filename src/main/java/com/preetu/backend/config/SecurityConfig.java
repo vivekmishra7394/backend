@@ -2,6 +2,7 @@ package com.preetu.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -10,12 +11,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 public class SecurityConfig {
+
 	private final JwtAuthFilter jwtAuthFilter;
 	private final AuditLogFilter auditLogFilter;
 
-	SecurityConfig(JwtAuthFilter jwtAuthFilter,AuditLogFilter auditLogFilter) {
+	public SecurityConfig(JwtAuthFilter jwtAuthFilter, AuditLogFilter auditLogFilter) {
 		this.jwtAuthFilter = jwtAuthFilter;
-		this.auditLogFilter = auditLogFilter;	
+		this.auditLogFilter = auditLogFilter;
 	}
 
 	@Bean
@@ -26,27 +28,72 @@ public class SecurityConfig {
 
 				.authorizeHttpRequests(auth -> auth
 
-						// Swagger ko public rakhenge
-						.requestMatchers("/swagger-ui/**", "/swagger-ui.html"	, "/v3/api-docs" ,"/v3/api-docs/**",
-								"/api/users/user-login", "/api/users/create-user", "/api/users/user-logout").permitAll()
-					
-						.requestMatchers("/api/users/**").hasRole("USER")
-					    .requestMatchers("/api/products/**").hasRole("ADMIN")
+						// =========================
+						// PUBLIC
+						// =========================
+
+						.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs", "/v3/api-docs/**")
+						.permitAll()
+
+						.requestMatchers("/api/users/create-user", "/api/users/user-login", "/api/users/user-logout")
+						.permitAll()
+
+						// =========================
+						// USER + ADMIN
+						// =========================
+
+						.requestMatchers("/api/users/me").hasAnyRole("USER", "ADMIN")
+
+						.requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**")
+						.hasAnyRole("USER", "ADMIN")
+
+						// =========================
+						// ADMIN ONLY
+						// =========================
+
+						.requestMatchers(HttpMethod.POST, "/api/products", "/api/products/**").hasRole("ADMIN")
+
+						.requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
+
+						.requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+
+						.requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+
+						.requestMatchers(HttpMethod.GET, "/api/users/get-user-by-id/**").hasRole("ADMIN")
+
+						.requestMatchers(HttpMethod.PUT, "/api/users/update-user/**").hasRole("ADMIN")
+
+						.requestMatchers(HttpMethod.DELETE, "/api/users/delete-user/**").hasRole("ADMIN")
+
+						.requestMatchers("/api/users/admin-login").hasRole("ADMIN")
+
+						// =========================
+						// EVERYTHING ELSE
+						// =========================
+
 						.anyRequest().authenticated())
 
-				.exceptionHandling(exception -> exception.authenticationEntryPoint((request, response,
-						authException) -> response.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized")))
+				// =========================
+				// 401 / 403
+				// =========================
 
-				  .addFilterBefore(
-			                jwtAuthFilter,
-			                UsernamePasswordAuthenticationFilter.class
-			            )
+				.exceptionHandling(exception -> exception
 
-			            // Audit after JWT authentication
-			            .addFilterAfter(
-			                auditLogFilter,
-			                JwtAuthFilter.class
-			            );
+						.authenticationEntryPoint((request, response, authException) -> {
+							response.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized");
+						})
+
+						.accessDeniedHandler((request, response, accessDeniedException) -> {
+							response.sendError(HttpStatus.FORBIDDEN.value(), "Access Denied");
+						}))
+
+				// =========================
+				// FILTER ORDER
+				// =========================
+
+				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
+				.addFilterAfter(auditLogFilter, JwtAuthFilter.class);
 
 		return http.build();
 	}
