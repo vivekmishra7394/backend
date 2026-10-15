@@ -17,73 +17,67 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
+	private final JwtService jwtService;
 
-    public JwtAuthFilter(JwtService jwtService) {
-        this.jwtService = jwtService;
-    }
+	public JwtAuthFilter(JwtService jwtService) {
+		this.jwtService = jwtService;
+	}
 
-    @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain)
-            throws ServletException, IOException {
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
 
-        String token = null;
+		String token = null;
 
-        // Read JWT from cookie
-        Cookie[] cookies = request.getCookies();
+		// Read JWT from cookie
+		Cookie[] cookies = request.getCookies();
 
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
 
-                if ("jwt".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
-                }
-            }
-        }
+				if ("jwt".equals(cookie.getName())) {
+					token = cookie.getValue();
+					break;
+				}
+			}
+		}
 
-        // If token exists, validate it
-        if (token != null) {
-        	  System.out.println("JWT cookie received");
+		// If token exists, validate it
+		if (token != null) {
 
-            try {
+			System.out.println("JWT cookie received");
 
-            	
-                String email = jwtService.extractEmail(token);
-                String role = jwtService.extractRole(token);
-                String customerId = jwtService.extractCustomerId(token);
-             
+			try {
 
-                if (email != null &&
-                    SecurityContextHolder.getContext().getAuthentication() == null) {
-                	  SimpleGrantedAuthority authority =
-                              new SimpleGrantedAuthority("ROLE_" + role);
+				String email = jwtService.extractEmail(token);
+				String role = jwtService.extractRole(token);
+				String customerId = jwtService.extractCustomerId(token);
+				System.out.println("JWT email: " + email);
+				System.out.println("JWT role: " + role);
+				System.out.println("JWT customerId: " + customerId);
 
-                      UsernamePasswordAuthenticationToken authentication =
-                              new UsernamePasswordAuthenticationToken(
-                            		  
-                                      new AuthenticatedUser(email, role,customerId),
-                                      null, 
-                                      List.of(authority)
-                              );            	
-                
+				if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+					SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
 
-                        SecurityContextHolder
-                                .getContext()
-                                .setAuthentication(authentication);
-                }
-                
-    
-            } catch (Exception e) {
+					UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 
-                // Invalid/expired JWT
-                System.out.println("Invalid JWT: " + e.getMessage());
-            }
-        }
+							new AuthenticatedUser(email, role, customerId), null, List.of(authority));
 
-        filterChain.doFilter(request, response);
-    }
+					SecurityContextHolder.getContext().setAuthentication(authentication);
+					System.out.println("Authentication set: "
+							+ SecurityContextHolder.getContext().getAuthentication().isAuthenticated());
+
+					System.out.println(
+							"Authorities: " + SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+				}
+
+			} catch (Exception e) {
+
+				// Invalid/expired JWT
+				System.out.println("Invalid JWT: " + e.getMessage());
+			}
+		}
+		System.out.println("Before controller: " + SecurityContextHolder.getContext().getAuthentication());
+		filterChain.doFilter(request, response);
+	}
 }

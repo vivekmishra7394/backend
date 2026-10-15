@@ -5,6 +5,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import com.preetu.backend.config.AuthenticatedUser;
 import com.preetu.backend.dto.ApiResponse;
 import com.preetu.backend.dto.LoginRequest;
 import com.preetu.backend.dto.LoginResponse;
@@ -69,8 +71,10 @@ public class UserController {
 
 	@GetMapping("/me")
 	public ApiResponse<String> getCurrentUser(Authentication authentication) {
+		  AuthenticatedUser authenticatedUser =
+		            (AuthenticatedUser) authentication.getPrincipal();
 
-	    String email = authentication.getName();
+	    String email = authenticatedUser.getEmail();
 
 	    return new ApiResponse<>(
 	            true,

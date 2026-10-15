@@ -1,5 +1,6 @@
 package com.preetu.backend.config;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,6 +29,7 @@ public class SecurityConfig {
 
 				.authorizeHttpRequests(auth -> auth
 
+						 .requestMatchers("/error").permitAll()
 						// =========================
 						// PUBLIC
 						// =========================
@@ -94,7 +96,28 @@ public class SecurityConfig {
 				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
 				.addFilterAfter(auditLogFilter, JwtAuthFilter.class);
+		
+		
 
 		return http.build();
 	}
+
+@Bean
+public FilterRegistrationBean<JwtAuthFilter> jwtFilterRegistration(
+        JwtAuthFilter filter) {
+    FilterRegistrationBean<JwtAuthFilter> registration =
+            new FilterRegistrationBean<>(filter);
+    registration.setEnabled(false);
+    return registration;
+}
+
+@Bean
+public FilterRegistrationBean<AuditLogFilter> auditFilterRegistration(
+        AuditLogFilter filter) {
+    FilterRegistrationBean<AuditLogFilter> registration =
+            new FilterRegistrationBean<>(filter);
+    registration.setEnabled(false);
+    return registration;
+}
+
 }
